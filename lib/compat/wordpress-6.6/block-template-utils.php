@@ -448,9 +448,11 @@ function gutenberg_get_block_template( $id, $template_type = 'wp_template' ) {
 	}
 
 	$block_template = get_block_file_template( $id, $template_type );
+	// @core-merge: This code will go into Core's 'get_block_template' function.
 	if ( ! $block_template ) {
 		$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_type, $slug );
 	}
+	// @core-merge: End of the code that will go into Core.
 
 	$block_template = _gutenberg_add_template_details_from_registration( $template_type, $block_template );
 

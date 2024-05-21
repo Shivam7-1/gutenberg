@@ -32,7 +32,7 @@ function gutenberg_change_patterns_link_and_remove_template_parts_submenu_item()
 add_action( 'admin_init', 'gutenberg_change_patterns_link_and_remove_template_parts_submenu_item' );
 
 /**
- * Given that we can't modify `locate_block_template()` in `wp-includes` to call `gutenberg_get_block_templates()` instead of `get_block_templates()` we need to filter the results and return the correct template.
+ * @core-merge: Given that we can't modify `locate_block_template()` in `wp-includes` to call `gutenberg_get_block_templates()` instead of `get_block_templates()` we need to filter the results and return the correct template.
  *
  * @global string $_wp_current_template_content
  * @global int $_wp_current_template_id
@@ -65,6 +65,10 @@ foreach ( $template_filters as $template_filter ) {
 			$type,
 			$templates
 		) {
+			if ( $template ) {
+				return $template;
+			}
+
 			global $_wp_current_template_content, $_wp_current_template_id;
 			foreach ( $templates as $template_slug ) {
 				$located_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( 'wp_template', $template_slug );

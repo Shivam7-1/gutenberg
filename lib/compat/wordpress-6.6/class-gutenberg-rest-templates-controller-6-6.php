@@ -127,8 +127,11 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 	public function get_item( $request ) {
 		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
 			$template = get_block_file_template( $request['id'], $this->post_type );
+			// Even if the source is 'theme', make sure the 'plugin' property is
+			// defined if the template was registered by a plugin.
 			$template = _gutenberg_add_template_details_from_registration( $this->post_type, $template );
 		} elseif ( isset( $request['source'] ) && 'plugin' === $request['source'] ) {
+			// @core-merge: Add a special case for plugin templates.
 			list( , $slug ) = explode( '//', $request['id'] );
 			$template       = WP_Block_Templates_Registry::get_instance()->get_by_slug( $this->post_type, $slug );
 		} else {
@@ -151,6 +154,7 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
+		// @core-merge: Update instances of `get_block_template` to `gutenberg_get_block_template`.
 		$template = gutenberg_get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
@@ -220,6 +224,8 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
+		// @core-merge: Update instances of `get_block_template` to `gutenberg_get_block_template`
+		// and `get_block_templates` to `gutenberg_get_block_templates`.
 		$prepared_post = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $prepared_post ) ) {
@@ -237,7 +243,7 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 
 			return $post_id;
 		}
-		$posts = get_block_templates( array( 'wp_id' => $post_id ), $this->post_type );
+		$posts = gutenberg_get_block_templates( array( 'wp_id' => $post_id ), $this->post_type );
 		if ( ! count( $posts ) ) {
 			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.' ), array( 'status' => 400 ) );
 		}
@@ -272,6 +278,7 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
+		// @core-merge: Update instances of `get_block_template` to `gutenberg_get_block_template`.
 		$template = gutenberg_get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
@@ -335,6 +342,7 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 	 * @return stdClass|WP_Error Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
+		// @core-merge: Update instances of `get_block_template` to `gutenberg_get_block_template`
 		$template = $request['id'] ? gutenberg_get_block_template( $request['id'], $this->post_type ) : null;
 		$changes  = new stdClass();
 		if ( null === $template ) {
@@ -502,7 +510,7 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 			}
 
 			// Added by plugin.
-			if ( 'plugin' === $template_object->origin ) {
+			if ( $template_object->has_theme_file && 'plugin' === $template_object->origin ) {
 				return 'plugin';
 			}
 
@@ -556,6 +564,7 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $id ) {
+		// @core-merge: Update instances of `get_block_template` to `gutenberg_get_block_template`.
 		$links = array(
 			'self'       => array(
 				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->rest_base, $id ) ),

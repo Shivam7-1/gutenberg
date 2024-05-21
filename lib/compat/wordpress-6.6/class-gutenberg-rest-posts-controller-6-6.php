@@ -70,7 +70,9 @@ class Gutenberg_REST_Posts_Controller_6_6 extends WP_REST_Posts_Controller {
 add_action(
 	'init',
 	function () {
-		// We need to register the Post and Page post types again to assign them the correct `rest_controller_class`.
+		// @core-merge: We need to register the Post and Page post types again to assign them the
+		// correct `rest_controller_class`. When merging to core, updating `get_block_templates`
+		// would be enough.
 		register_post_type(
 			'post',
 			array(
