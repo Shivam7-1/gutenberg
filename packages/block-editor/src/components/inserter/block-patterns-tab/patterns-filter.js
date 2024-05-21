@@ -113,7 +113,8 @@ export function PatternsFilter( {
 				popoverProps={ {
 					placement: 'right-end',
 				} }
-				label="Filter patterns"
+				label={ __( 'Filter patterns' ) }
+				toggleProps={ { size: 'small' } }
 				icon={
 					<Icon
 						icon={
