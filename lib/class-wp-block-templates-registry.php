@@ -17,7 +17,10 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 		 * Registered block templates, as `$name => $instance` pairs.
 		 *
 		 * @since 6.6.0
-		 * @var WP_Block_Type[]
+		 * @var array  $registered_block_templates {
+		 *     @type WP_Block_Template[] $wp_template      Registered block templates.
+		 *     @type WP_Block_Template[] $wp_template_part Registered block template parts.
+		 * }
 		 */
 		private $registered_block_templates = array(
 			'wp_template'      => array(),
@@ -83,7 +86,7 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 			if ( ! preg_match( $name_matcher, $template_name ) ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Block template names must contain a namespace prefix. Example: my-plugin/my-custom-template', 'gutenberg' ),
+					__( 'Block template names must contain a namespace prefix. Example: my-plugin//my-custom-template', 'gutenberg' ),
 					'6.6.0'
 				);
 				return false;
@@ -101,25 +104,25 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 
 			if ( ! $template ) {
 				$theme_name = get_stylesheet();
-				$slug       = array_key_exists( 'slug', $args ) ? $args['slug'] : explode( '//', $template_name )[1];
+				$slug       = isset( $args['slug'] ) ? $args['slug'] : explode( '//', $template_name )[1];
 
 				$template                 = new WP_Block_Template();
 				$template->id             = $theme_name . '//' . $slug;
-				$template->theme          = $theme_name; // @todo If not attached to the theme, this should be the plugin URI.
-				$template->plugin         = array_key_exists( 'plugin', $args ) ? $args['plugin'] : '';
+				$template->theme          = $theme_name;
+				$template->plugin         = isset( $args['plugin'] ) ? $args['plugin'] : '';
 				$template->author         = null;
-				$template->content        = array_key_exists( 'path', $args ) ? file_get_contents( $args['path'] ) : '';
+				$template->content        = isset( $args['path'] ) ? file_get_contents( $args['path'] ) : '';
 				$template->source         = 'plugin';
 				$template->slug           = $slug;
 				$template->type           = $template_type;
-				$template->title          = array_key_exists( 'title', $args ) ? $args['title'] : '';
-				$template->description    = array_key_exists( 'description', $args ) ? $args['description'] : '';
+				$template->title          = isset( $args['title'] ) ? $args['title'] : '';
+				$template->description    = isset( $args['description'] ) ? $args['description'] : '';
 				$template->status         = 'publish';
 				$template->has_theme_file = true;
 				$template->origin         = 'plugin';
 				$template->is_custom      = true;
-				$template->post_types     = array_key_exists( 'post_types', $args ) ? $args['post_types'] : '';
-				$template->area           = 'wp_template_part' === $template_type && array_key_exists( 'area', $args ) ? $args['area'] : '';
+				$template->post_types     = 'wp_template' === $template_type && isset( $args['post_types'] ) ? $args['post_types'] : '';
+				$template->area           = 'wp_template_part' === $template_type && isset( $args['area'] ) ? $args['area'] : '';
 			}
 
 			$this->registered_block_templates[ $template_type ][ $template_name ] = $template;
@@ -127,30 +130,35 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 			return $template;
 		}
 
-		public function get_by_slug( $template_type, $template_slug ) {
-			$all_templates = $this->get_all_registered( $template_type );
-
-			if ( ! $all_templates ) {
-				return null;
-			}
-
-			foreach ( $all_templates as $template ) {
-				if ( $template->slug === $template_slug ) {
-					return $template;
-				}
-			}
-
-			return null;
-		}
-
 		/**
-		 * Retrieves a registered template.
+		 * Retrieves all registered block templates by type.
 		 *
 		 * @since 6.6.0
 		 *
 		 * @param string $template_type Template type, either `wp_template` or `wp_template_part`.
-		 * @param string $template_name Block type name including namespace.
-		 * @return WP_Block_Type|null The registered block type, or null if it is not registered.
+		 * @return WP_Block_Template[]|false Associative array of `$block_template_name => $block_template` pairs.
+		 */
+		public function get_all_registered( $template_type ) {
+			if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Only valid block template types are `wp_template` and `wp_template_part`.', 'gutenberg' ),
+					'6.6.0'
+				);
+				return false;
+			}
+
+			return $this->registered_block_templates[ $template_type ];
+		}
+
+		/**
+		 * Retrieves a registered template by its type and name.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $template_type Template type, either `wp_template` or `wp_template_part`.
+		 * @param string $template_name Block template name including namespace.
+		 * @return WP_Block_Template|null|false The registered block template, or null if it is not registered.
 		 */
 		public function get_registered( $template_type, $template_name ) {
 			if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
@@ -170,24 +178,28 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 		}
 
 		/**
-		 * Retrieves all registered block templates by type.
+		 * Retrieves a registered template by its type and slug.
 		 *
 		 * @since 6.6.0
 		 *
 		 * @param string $template_type Template type, either `wp_template` or `wp_template_part`.
-		 * @return WP_Block_Template[] Associative array of `$block_type_name => $block_type` pairs.
+		 * @param string $template_slug Slug of the template.
+		 * @return WP_Block_Template|null The registered block template, or null if it is not registered.
 		 */
-		public function get_all_registered( $template_type ) {
-			if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
-				_doing_it_wrong(
-					__METHOD__,
-					__( 'Only valid block template types are `wp_template` and `wp_template_part`.', 'gutenberg' ),
-					'6.6.0'
-				);
-				return false;
+		public function get_by_slug( $template_type, $template_slug ) {
+			$all_templates = $this->get_all_registered( $template_type );
+
+			if ( ! $all_templates ) {
+				return null;
 			}
 
-			return $this->registered_block_templates[ $template_type ];
+			foreach ( $all_templates as $template ) {
+				if ( $template->slug === $template_slug ) {
+					return $template;
+				}
+			}
+
+			return null;
 		}
 
 		/**
@@ -230,7 +242,7 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 					unset( $all_templates[ $template_name ] );
 				}
 
-				if ( ! empty( $post_type ) && ! in_array( $post_type, $template->post_types, true ) ) {
+				if ( 'wp_template' === $template_type && ! empty( $post_type ) && ! in_array( $post_type, $template->post_types, true ) ) {
 					unset( $all_templates[ $template_name ] );
 				}
 			}
@@ -244,7 +256,7 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 		 * @since 6.6.0
 		 *
 		 * @param string $template_type Template type, either `wp_template` or `wp_template_part`.
-		 * @param string $template_name Block type name including namespace.
+		 * @param string $template_name Block template name including namespace.
 		 * @return bool True if the template is registered, false otherwise.
 		 */
 		public function is_registered( $template_type, $template_name ) {
@@ -266,15 +278,10 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 		 * @since 6.6.0
 		 *
 		 * @param string $template_type Template type, either `wp_template` or `wp_template_part`.
-		 * @param string|WP_Block_Template $name Block template name including namespace, or alternatively
-		 *                                       a complete WP_Block_Template instance.
+		 * @param string $name          Block template name including namespace.
 		 * @return WP_Block_Template|false The unregistered block template on success, or false on failure.
 		 */
 		public function unregister( $template_type, $template_name ) {
-			if ( $template_name instanceof WP_Block_Type ) {
-				$template_name = $template_name->name;
-			}
-
 			if ( ! $this->is_registered( $template_type, $template_name ) ) {
 				_doing_it_wrong(
 					__METHOD__,

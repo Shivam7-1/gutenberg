@@ -228,14 +228,6 @@ function _gutenberg_get_block_templates_files( $template_type, $query = array() 
 	return array_values( $template_files );
 }
 
-function _gutenberg_add_template_details_from_registration( $template_type, $template_object_from_file ) {
-	$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_type, $template_object_from_file->slug );
-	if ( $registered_template ) {
-		$template_object_from_file->plugin = $registered_template->plugin;
-	}
-	return $template_object_from_file;
-}
-
 /**
  * Retrieves a list of unified template objects based on a query.
  *
@@ -335,11 +327,10 @@ function gutenberg_get_block_templates( $query = array(), $template_type = 'wp_t
 			continue;
 		}
 
-		$query_result[] = _gutenberg_add_template_details_from_registration( $template_type, $template );
+		$query_result[] = $template;
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
-
 		/*
 		 * If the query has found some use templates, those have priority
 		 * over the theme-provided ones, so we skip querying and building them.
@@ -347,27 +338,8 @@ function gutenberg_get_block_templates( $query = array(), $template_type = 'wp_t
 		$query['slug__not_in'] = wp_list_pluck( $query_result, 'slug' );
 		$template_files        = _gutenberg_get_block_templates_files( $template_type, $query );
 		foreach ( $template_files as $template_file ) {
-			$template_object_from_file = _build_block_template_result_from_file( $template_file, $template_type );
-
-			$query_result[] = _gutenberg_add_template_details_from_registration( $template_type, $template_object_from_file );
+			$query_result[] = _build_block_template_result_from_file( $template_file, $template_type );
 		}
-
-		/*
-		 * Add templates registered in the template registry. Filtering out the ones which have a theme file.
-		 */
-		$registered_templates          = WP_Block_Templates_Registry::get_instance()->get_by_query( $template_type, $query );
-		$matching_registered_templates = array_filter(
-			$registered_templates,
-			function ( $registered_template ) use ( $template_files ) {
-				foreach ( $template_files as $template_file ) {
-					if ( $template_file['slug'] === $registered_template->slug ) {
-						return false;
-					}
-				}
-				return true;
-			}
-		);
-		$query_result                  = array_merge( $query_result, $matching_registered_templates );
 	}
 
 	/**
@@ -387,83 +359,4 @@ function gutenberg_get_block_templates( $query = array(), $template_type = 'wp_t
 	 * @param string              $template_type wp_template or wp_template_part.
 	 */
 	return apply_filters( 'get_block_templates', $query_result, $query, $template_type );
-}
-
-/**
- * Retrieves a single unified template object using its id.
- *
- * @since 5.8.0
- *
- * @param string $id            Template unique identifier (example: 'theme_slug//template_slug').
- * @param string $template_type Optional. Template type. Either 'wp_template' or 'wp_template_part'.
- *                              Default 'wp_template'.
- * @return WP_Block_Template|null Template.
- */
-function gutenberg_get_block_template( $id, $template_type = 'wp_template' ) {
-	/**
-	 * Filters the block template object before the query takes place.
-	 *
-	 * Return a non-null value to bypass the WordPress queries.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_Block_Template|null $block_template Return block template object to short-circuit the default query,
-	 *                                               or null to allow WP to run its normal queries.
-	 * @param string                 $id             Template unique identifier (example: 'theme_slug//template_slug').
-	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
-	 */
-	$block_template = apply_filters( 'pre_get_block_template', null, $id, $template_type );
-	if ( ! is_null( $block_template ) ) {
-		return $block_template;
-	}
-
-	$parts = explode( '//', $id, 2 );
-	if ( count( $parts ) < 2 ) {
-		return null;
-	}
-	list( $theme, $slug ) = $parts;
-	$wp_query_args        = array(
-		'post_name__in'  => array( $slug ),
-		'post_type'      => $template_type,
-		'post_status'    => array( 'auto-draft', 'draft', 'publish', 'trash' ),
-		'posts_per_page' => 1,
-		'no_found_rows'  => true,
-		'tax_query'      => array(
-			array(
-				'taxonomy' => 'wp_theme',
-				'field'    => 'name',
-				'terms'    => $theme,
-			),
-		),
-	);
-	$template_query       = new WP_Query( $wp_query_args );
-	$posts                = $template_query->posts;
-
-	if ( count( $posts ) > 0 ) {
-		$template = _build_block_template_result_from_post( $posts[0] );
-
-		if ( ! is_wp_error( $template ) ) {
-			return $template;
-		}
-	}
-
-	$block_template = get_block_file_template( $id, $template_type );
-	// @core-merge: This code will go into Core's 'get_block_template' function.
-	if ( ! $block_template ) {
-		$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_type, $slug );
-	}
-	// @core-merge: End of the code that will go into Core.
-
-	$block_template = _gutenberg_add_template_details_from_registration( $template_type, $block_template );
-
-	/**
-	 * Filters the queried block template object after it's been fetched.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_Block_Template|null $block_template The found block template, or null if there isn't one.
-	 * @param string                 $id             Template unique identifier (example: 'theme_slug//template_slug').
-	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
-	 */
-	return apply_filters( 'get_block_template', $block_template, $id, $template_type );
 }
