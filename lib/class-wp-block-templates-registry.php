@@ -111,7 +111,7 @@ if ( ! class_exists( 'WP_Block_Templates_Registry' ) ) {
 				$template->theme          = $theme_name;
 				$template->plugin         = isset( $args['plugin'] ) ? $args['plugin'] : '';
 				$template->author         = null;
-				$template->content        = isset( $args['path'] ) ? file_get_contents( $args['path'] ) : '';
+				$template->content        = isset( $args['content'] ) ? $args['content'] : '';
 				$template->source         = 'plugin';
 				$template->slug           = $slug;
 				$template->type           = $template_type;
