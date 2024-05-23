@@ -253,6 +253,9 @@ class Gutenberg_REST_Templates_Controller_6_6 extends Gutenberg_REST_Templates_C
 				$theme_name = wp_get_theme( $template_object->theme )->get( 'Name' );
 				return empty( $theme_name ) ? $template_object->theme : $theme_name;
 			case 'plugin':
+				if ( ! function_exists( 'get_plugins' ) ) {
+					require_once ABSPATH . 'wp-admin/includes/plugin.php';
+				}
 				$plugins = get_plugins();
 				// @core-merge: Prioritize plugin name instead of theme name for plugin-registered templates.
 				$plugin_name = isset( $template_object->plugin ) ? $template_object->plugin . '/' . $template_object->plugin : $template_object->theme;
