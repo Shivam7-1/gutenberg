@@ -22,7 +22,6 @@ import { store as interfaceStore } from '@wordpress/interface';
 /**
  * Internal dependencies
  */
-import PageAttributesPanel from '../page-attributes/panel';
 import PatternOverridesPanel from '../pattern-overrides-panel';
 import PluginDocumentSettingPanel from '../plugin-document-setting-panel';
 import PluginSidebar from '../plugin-sidebar';
@@ -119,7 +118,6 @@ const SidebarContent = ( {
 					<PostTransformPanel />
 					<PostLastRevisionPanel />
 					<PostTaxonomiesPanel />
-					<PageAttributesPanel />
 					<PatternOverridesPanel />
 					{ extraPanels }
 				</Tabs.TabPanel>
