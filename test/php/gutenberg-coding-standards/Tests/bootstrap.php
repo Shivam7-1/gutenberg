@@ -24,63 +24,36 @@ $ds = DIRECTORY_SEPARATOR;
  * Load the necessary PHPCS files.
  */
 // Get the PHPCS dir from an environment variable.
-$phpcsDir          = getenv( 'PHPCS_DIR' );
-$composerPHPCSPath = dirname( __DIR__ ) . $ds . 'vendor' . $ds . 'squizlabs' . $ds . 'php_codesniffer';
-
-if ( false === $phpcsDir && is_dir( $composerPHPCSPath ) ) {
-	// PHPCS installed via Composer.
-	$phpcsDir = $composerPHPCSPath;
-} elseif ( false !== $phpcsDir ) {
-	/*
-	 * PHPCS in a custom directory.
-	 * For this to work, the `PHPCS_DIR` needs to be set in a custom `phpunit.xml` file.
-	 */
-	$phpcsDir = realpath( $phpcsDir );
-}
+$phpcs_dir = dirname( __DIR__ ) . $ds . 'vendor' . $ds . 'squizlabs' . $ds . 'php_codesniffer';
 
 // Try and load the PHPCS autoloader.
-if ( false !== $phpcsDir
-	&& file_exists( $phpcsDir . $ds . 'autoload.php' )
-	&& file_exists( $phpcsDir . $ds . 'tests' . $ds . 'bootstrap.php' )
-) {
-	require_once $phpcsDir . $ds . 'autoload.php';
-	require_once $phpcsDir . $ds . 'tests' . $ds . 'bootstrap.php'; // PHPUnit 6.x+ support.
-} else {
-	echo 'Uh oh... can\'t find PHPCS.
-
-If you use Composer, please run `composer install`.
-Otherwise, make sure you set a `PHPCS_DIR` environment variable in your phpunit.xml file
-pointing to the PHPCS directory and that PHPCSUtils is included in the `installed_paths`
-for that PHPCS install.
-';
-
+if ( ! file_exists( $phpcs_dir . $ds . 'autoload.php' ) || ! file_exists( $phpcs_dir . $ds . 'tests' . $ds . 'bootstrap.php' ) ) {
+	echo 'Can\'t find PHP_CodeSniffer. Run "composer install".' . PHP_EOL;
 	die( 1 );
 }
 
+require_once $phpcs_dir . $ds . 'autoload.php';
+require_once $phpcs_dir . $ds . 'tests' . $ds . 'bootstrap.php'; // PHPUnit 6.x+ support.
 
 /*
  * Set the PHPCS_IGNORE_TEST environment variable to ignore tests from other standards.
  */
-$gbcsStandards = array(
-	'Gutenberg' => true,
-);
+$all_coding_standards   = PHP_CodeSniffer\Util\Standards::getInstalledStandards();
+$all_coding_standards[] = 'Generic';
 
-$allStandards   = PHP_CodeSniffer\Util\Standards::getInstalledStandards();
-$allStandards[] = 'Generic';
-
-$standardsToIgnore = array();
-foreach ( $allStandards as $standard ) {
-	if ( isset( $gbcsStandards[ $standard ] ) === true ) {
+$standards_to_ignore = array();
+foreach ( $all_coding_standards as $coding_standard ) {
+	if ( 'Gutenberg' === $coding_standard ) {
 		continue;
 	}
 
-	$standardsToIgnore[] = $standard;
+	$standards_to_ignore[] = $coding_standard;
 }
 
-$standardsToIgnoreString = implode( ',', $standardsToIgnore );
+$standards_to_ignore_as_string = implode( ',', $standards_to_ignore );
 
-// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv -- This is not production, but test code.
-putenv( "PHPCS_IGNORE_TESTS={$standardsToIgnoreString}" );
+// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv -- This is not production code.
+putenv( "PHPCS_IGNORE_TESTS={$standards_to_ignore_as_string}" );
 
 // Clean up.
-unset( $ds, $phpcsDir, $composerPHPCSPath, $allStandards, $standardsToIgnore, $standard, $standardsToIgnoreString );
+unset( $ds, $phpcs_dir, $all_coding_standards, $standards_to_ignore, $coding_standard, $standards_to_ignore_as_string );
