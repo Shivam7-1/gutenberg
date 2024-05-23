@@ -442,7 +442,7 @@ class SinceTagSniff implements Sniff {
 	 *
 	 * @param File $phpcs_file    The file being scanned.
 	 * @param int  $stack_pointer The position to start looking for the docblock.
-	 * @return int A last token on the previous line.
+	 * @return int|false A last token on the previous line.
 	 */
 	protected static function find_previous_line_token( File $phpcs_file, $stack_pointer ) {
 		$tokens       = $phpcs_file->getTokens();
@@ -506,7 +506,7 @@ class SinceTagSniff implements Sniff {
 
 		if ( in_array( $tokens[ $previous ]['code'], $previous_tokens_to_ignore, true ) ) {
 			// This is an object or function declaration.
-			return;
+			return false;
 		}
 
 		// Find the next non-empty token.
