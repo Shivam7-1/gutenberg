@@ -465,17 +465,16 @@ class SinceTagSniff implements Sniff {
 	 * @return array|false An associative array containing the start and end tokens of the docblock, or false if not found.
 	 */
 	protected static function find_docblock( File $phpcs_file, $stack_pointer ) {
-		$tokens = $phpcs_file->getTokens();
-
 		// It can be assumed that the DocBlock should end on the previous line, not the current one.
 		$previous_line_end_token = static::find_previous_line_token( $phpcs_file, $stack_pointer );
-		if ( ! $previous_line_end_token ) {
+		if ( false === $previous_line_end_token ) {
 			return false;
 		}
 
-		$docblock_end_token = $phpcs_file->findPrevious( T_WHITESPACE, $previous_line_end_token, null, true );
+		$docblock_end_token = $phpcs_file->findPrevious( array( T_WHITESPACE ), $previous_line_end_token, null, true );
 
-		if ( ! $docblock_end_token || T_DOC_COMMENT_CLOSE_TAG !== $tokens[ $docblock_end_token ]['code'] ) {
+		$tokens = $phpcs_file->getTokens();
+		if ( false === $docblock_end_token || T_DOC_COMMENT_CLOSE_TAG !== $tokens[ $docblock_end_token ]['code'] ) {
 			// Only "/**" style comments are supported.
 			return false;
 		}
@@ -513,7 +512,7 @@ class SinceTagSniff implements Sniff {
 		// Find the next non-empty token.
 		$open_bracket = $phpcs_file->findNext( Tokens::$emptyTokens, ( $stack_pointer + 1 ), null, true );
 
-		return ! $open_bracket && T_OPEN_PARENTHESIS === $tokens[ $open_bracket ]['code'];
+		return ( false !== $open_bracket ) && ( T_OPEN_PARENTHESIS === $tokens[ $open_bracket ]['code'] );
 	}
 
 	/**
