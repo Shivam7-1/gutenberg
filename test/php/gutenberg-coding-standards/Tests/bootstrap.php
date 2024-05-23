@@ -39,8 +39,8 @@ require_once $phpcs_dir . $ds . 'tests' . $ds . 'bootstrap.php'; // PHPUnit 6.x+
  * Set the PHPCS_IGNORE_TEST environment variable to ignore tests from other standards.
  */
 $all_coding_standards   = PHP_CodeSniffer\Util\Standards::getInstalledStandards();
-
 $standards_to_ignore = array( 'Generic' );
+
 foreach ( $all_coding_standards as $coding_standard ) {
 	if ( 'Gutenberg' === $coding_standard ) {
 		continue;
