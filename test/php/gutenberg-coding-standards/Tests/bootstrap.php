@@ -7,7 +7,7 @@
  * - Load the PHPCS PHPUnit bootstrap file providing cross-version PHPUnit support.
  *   {@link https://github.com/squizlabs/PHP_CodeSniffer/pull/1384}
  * - Load the Composer autoload file.
- * - Automatically limit the testing to the WordPressCS tests.
+ * - Automatically limit the testing to the Gutenberg coding standard tests.
  *
  * @package gutenberg/gutenberg-coding-standards
  * @link    https://github.com/WordPress/gutenberg
@@ -39,9 +39,8 @@ require_once $phpcs_dir . $ds . 'tests' . $ds . 'bootstrap.php'; // PHPUnit 6.x+
  * Set the PHPCS_IGNORE_TEST environment variable to ignore tests from other standards.
  */
 $all_coding_standards   = PHP_CodeSniffer\Util\Standards::getInstalledStandards();
-$all_coding_standards[] = 'Generic';
 
-$standards_to_ignore = array();
+$standards_to_ignore = array( 'Generic' );
 foreach ( $all_coding_standards as $coding_standard ) {
 	if ( 'Gutenberg' === $coding_standard ) {
 		continue;
