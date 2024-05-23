@@ -22,7 +22,7 @@ use PHPCSUtils\Utils\Variables;
 /**
  * This sniff verifies the presence of valid `@since` tags in the docblocks of various PHP structures
  * and WordPress hooks. Supported structures include classes, interfaces, traits, enums, functions, methods and properties.
- * Files located within the __experimental blocks of the block-library are excluded from checks.
+ * Files located within the __experimental blocks of the block-library folder are excluded from checks.
  */
 class SinceTagSniff implements Sniff {
 
