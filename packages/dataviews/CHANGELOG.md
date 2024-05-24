@@ -9,7 +9,7 @@
 
 ### Enhancement
 
--   Add `getLabel` prop in Actions API to support labels that use information from the current item. ([#61941](https://github.com/WordPress/gutenberg/pull/61941)).
+-   Add `getLabel` prop in Actions API to support labels that use information from the selected items. ([#61942](https://github.com/WordPress/gutenberg/pull/61942)).
 
 ## 1.2.0 (2024-05-16)
 
