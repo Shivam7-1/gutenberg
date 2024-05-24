@@ -30,9 +30,7 @@ const Template: StoryFn< typeof ProgressBar > = ( { ...args } ) => {
 };
 
 export const Default: StoryFn< typeof ProgressBar > = Template.bind( {} );
-Default.args = {
-	value: 50,
-};
+Default.args = {};
 
 /**
  * A progress bar that expands to fill its container, ignoring the default `max-width`.

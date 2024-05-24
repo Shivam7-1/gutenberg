@@ -12,7 +12,7 @@ export type ProgressBarProps = {
 	/**
 	 * If `true`, the progress bar will expand to fill its container, ignoring the default `max-width` of 160px.
 	 * This allows the progress bar to adapt to different container sizes.
-	 * @default undefined
+	 * @default false
 	 */
 	hasUnconstrainedWidth?: boolean;
 };

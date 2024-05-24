@@ -20,7 +20,12 @@ function UnforwardedProgressBar(
 	props: WordPressComponentProps< ProgressBarProps, 'progress', false >,
 	ref: ForwardedRef< HTMLProgressElement >
 ) {
-	const { className, value, hasUnconstrainedWidth, ...progressProps } = props;
+	const {
+		className,
+		value,
+		hasUnconstrainedWidth = false,
+		...progressProps
+	} = props;
 	const isIndeterminate = ! Number.isFinite( value );
 
 	return (
