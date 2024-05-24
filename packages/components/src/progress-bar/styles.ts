@@ -26,7 +26,7 @@ export const Track = styled.div< { hasUnconstrainedWidth?: boolean } >`
 	overflow: hidden;
 	width: 100%;
 	${ ( { hasUnconstrainedWidth } ) =>
-		! hasUnconstrainedWidth && "max-width: '160px;'" }
+		! hasUnconstrainedWidth && 'max-width: 160px;' }
 	height: ${ CONFIG.borderWidthFocus };
 	/* Text color at 10% opacity */
 	background-color: color-mix(
