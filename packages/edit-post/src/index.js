@@ -7,7 +7,7 @@ import {
 	__experimentalRegisterExperimentalCoreBlocks,
 } from '@wordpress/block-library';
 import deprecated from '@wordpress/deprecated';
-import { createRoot } from '@wordpress/element';
+import { createRoot, StrictMode } from '@wordpress/element';
 import { dispatch, select } from '@wordpress/data';
 import { store as preferencesStore } from '@wordpress/preferences';
 import {
@@ -131,12 +131,14 @@ export function initializeEditor(
 	window.addEventListener( 'drop', ( e ) => e.preventDefault(), false );
 
 	root.render(
-		<Editor
-			settings={ settings }
-			postId={ postId }
-			postType={ postType }
-			initialEdits={ initialEdits }
-		/>
+		<StrictMode>
+			<Editor
+				settings={ settings }
+				postId={ postId }
+				postType={ postType }
+				initialEdits={ initialEdits }
+			/>
+		</StrictMode>
 	);
 
 	return root;
